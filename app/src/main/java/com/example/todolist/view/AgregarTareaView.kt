@@ -1,4 +1,4 @@
-package com.example.todolist.screens
+package com.example.todolist.view
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,11 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskScreen(
-    onTaskAdded: (String) -> Unit,
+fun AgregarTareaView(
+    onTaskAdded: (String, String) -> Unit,
     onBack: () -> Unit
 ) {
-    var taskText by remember { mutableStateOf("") }
+    var taskTitle by remember { mutableStateOf("") }
+    var taskDescription by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
@@ -39,13 +40,20 @@ fun AddTaskScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TextField(
-                value = taskText,
+                value = taskTitle,
                 onValueChange = {
-                    taskText = it
+                    taskTitle = it
                     errorText = null
                 },
-                label = { Text("Nombre de la tarea") },
+                label = { Text("Título de la tarea") },
                 isError = errorText != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            TextField(
+                value = taskDescription,
+                onValueChange = { taskDescription = it },
+                label = { Text("Descripción de la tarea") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -56,10 +64,10 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(onClick = {
-                if (taskText.isBlank()) {
-                    errorText = "El campo no puede estar vacío"
+                if (taskTitle.isBlank()) {
+                    errorText = "El campo de título no puede estar vacío"
                 } else {
-                    onTaskAdded(taskText.trim())
+                    onTaskAdded(taskTitle.trim(), taskDescription.trim())
                     onBack()
                 }
             }) {
@@ -68,5 +76,3 @@ fun AddTaskScreen(
         }
     }
 }
-
-
