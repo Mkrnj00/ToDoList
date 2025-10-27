@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.example.todolist.model.Tarea
 import com.example.todolist.model.TareaRepository
+import java.util.Date
 
 class TareaViewModel : ViewModel() {
     private val _tasks = mutableStateListOf<Tarea>()
@@ -13,9 +14,9 @@ class TareaViewModel : ViewModel() {
         _tasks.addAll(TareaRepository.obtenerTareas())
     }
 
-    fun addTask(titulo: String, descripcion: String) {
+    fun addTask(titulo: String, descripcion: String, fecha: Date) {
         if (titulo.isNotBlank()) {
-            val nuevaTarea = Tarea(titulo.trim(), descripcion.trim())
+            val nuevaTarea = Tarea(titulo.trim(), descripcion.trim(), fecha = fecha)
             TareaRepository.agregarTarea(nuevaTarea)
             _tasks.add(nuevaTarea)
         }

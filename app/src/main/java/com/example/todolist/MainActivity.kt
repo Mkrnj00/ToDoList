@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.todolist.ui.theme.ToDoListTheme
 import com.example.todolist.view.AgregarTareaView
-import com.example.todolist.view.TodoListView
+import com.example.todolist.view.ToDoListView
 import com.example.todolist.viewmodel.TareaViewModel
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +32,7 @@ fun AppNavGraph(navController: NavHostController) {
 
     NavHost(navController = navController, startDestination = "list") {
         composable("list") {
-            TodoListView(
+            ToDoListView(
                 tasks = viewModel.tasks,
                 onAddClicked = { navController.navigate("add") },
                 onDelete = { task -> viewModel.removeTask(task) },
@@ -41,7 +41,7 @@ fun AppNavGraph(navController: NavHostController) {
         }
         composable("add") {
             AgregarTareaView(
-                onTaskAdded = { titulo, descripcion -> viewModel.addTask(titulo, descripcion) },
+                onTaskAdded = { titulo, descripcion, fecha -> viewModel.addTask(titulo, descripcion, fecha) },
                 onBack = { navController.popBackStack() }
             )
         }
