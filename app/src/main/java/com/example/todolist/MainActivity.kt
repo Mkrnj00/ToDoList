@@ -3,9 +3,6 @@ package com.example.todolist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,28 +39,15 @@ fun AppNavGraph(navController: NavHostController, factory: TareaViewModelFactory
     val viewModel: TareaViewModel = viewModel(factory = factory)
     val tasks by viewModel.tasks.collectAsState()
     val phrase by viewModel.phrase.collectAsState()
-    val showDialog by viewModel.showPhraseDialog.collectAsState()
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { viewModel.onDialogDismiss() },
-            title = { Text(text = "Frase del día") },
-            text = { Text(text = phrase) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.onDialogDismiss() }) {
-                    Text("Cerrar")
-                }
-            }
-        )
-    }
 
     NavHost(navController = navController, startDestination = "list") {
         composable("list") {
             ToDoListView(
                 tasks = tasks,
+                phrase = phrase,
                 onAddClicked = { navController.navigate("add") },
                 onDelete = { task -> viewModel.removeTask(task) },
-                onTaskStateChange = { task, isChecked -> viewModel.cambiarEstadoTarea(task, isChecked) }
+                onTaskStateChange = { task, estado -> viewModel.cambiarEstadoTarea(task, estado) }
             )
         }
         composable("add") {

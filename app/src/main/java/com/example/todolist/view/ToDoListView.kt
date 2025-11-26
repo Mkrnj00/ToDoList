@@ -2,6 +2,7 @@ package com.example.todolist.view
 
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.todolist.model.EstadoTarea
 import com.example.todolist.model.Tarea
 import java.text.SimpleDateFormat
 import java.util.*
@@ -22,16 +24,17 @@ import java.util.*
 @Composable
 fun ToDoListView(
     tasks: List<Tarea>,
+    phrase: String,
     onAddClicked: () -> Unit,
     onDelete: (Tarea) -> Unit,
-    onTaskStateChange: (Tarea, Boolean) -> Unit
+    onTaskStateChange: (Tarea, EstadoTarea) -> Unit
 ) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf<Tarea?>(null) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Lista de tareas") })
+            TopAppBar(title = { Text(phrase) })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClicked) {
@@ -53,19 +56,36 @@ fun ToDoListView(
                 )
             } else {
                 LazyColumn {
-                    items(tasks, key = { it.titulo }) { task ->
+                    items(tasks, key = { it.id }) { task ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Checkbox(
-                                checked = task.completada,
-                                onCheckedChange = { isChecked ->
-                                    onTaskStateChange(task, isChecked)
+                            var expanded by remember { mutableStateOf(false) }
+
+                            Box {
+                                Text(
+                                    text = task.estado.displayName,
+                                    modifier = Modifier.clickable { expanded = true }
+                                )
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    EstadoTarea.values().forEach { estado ->
+                                        DropdownMenuItem(
+                                            text = { Text(estado.displayName) },
+                                            onClick = {
+                                                onTaskStateChange(task, estado)
+                                                expanded = false
+                                            }
+                                        )
+                                    }
                                 }
-                            )
+                            }
+
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = task.titulo, style = MaterialTheme.typography.bodyLarge)
