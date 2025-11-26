@@ -1,22 +1,30 @@
 package com.example.todolist.model
 
-object TareaRepository {
-    private val tareas = mutableListOf<Tarea>()
+import com.example.todolist.data.TareasDataStore
+import kotlinx.coroutines.flow.first
 
-    fun obtenerTareas(): List<Tarea> = tareas
+class TareaRepository(private val tareasDataStore: TareasDataStore) {
 
-    fun agregarTarea(tarea: Tarea) {
-        tareas.add(tarea)
+    val tareas = tareasDataStore.tareas
+
+    suspend fun agregarTarea(tarea: Tarea) {
+        val currentTasks = tareas.first().toMutableList()
+        currentTasks.add(tarea)
+        tareasDataStore.guardarTareas(currentTasks)
     }
 
-    fun eliminarTarea(tarea: Tarea) {
-        tareas.remove(tarea)
+    suspend fun eliminarTarea(tarea: Tarea) {
+        val currentTasks = tareas.first().toMutableList()
+        currentTasks.remove(tarea)
+        tareasDataStore.guardarTareas(currentTasks)
     }
 
-    fun actualizarTarea(tareaActualizada: Tarea) {
-        val index = tareas.indexOfFirst { it.titulo == tareaActualizada.titulo } // Asumimos que el título es único
+    suspend fun actualizarTarea(tareaActualizada: Tarea) {
+        val currentTasks = tareas.first().toMutableList()
+        val index = currentTasks.indexOfFirst { it.titulo == tareaActualizada.titulo }
         if (index != -1) {
-            tareas[index] = tareaActualizada
+            currentTasks[index] = tareaActualizada
+            tareasDataStore.guardarTareas(currentTasks)
         }
     }
 }

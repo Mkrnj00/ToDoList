@@ -1,38 +1,43 @@
 package com.example.todolist.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.todolist.model.Tarea
 import com.example.todolist.model.TareaRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.Date
 
-class TareaViewModel : ViewModel() {
-    private val _tasks = mutableStateListOf<Tarea>()
-    val tasks: List<Tarea> = _tasks
+class TareaViewModel(private val repository: TareaRepository) : ViewModel() {
 
-    init {
-        _tasks.addAll(TareaRepository.obtenerTareas())
-    }
+    val tasks: StateFlow<List<Tarea>> = repository.tareas
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     fun addTask(titulo: String, descripcion: String, fecha: Date) {
         if (titulo.isNotBlank()) {
-            val nuevaTarea = Tarea(titulo.trim(), descripcion.trim(), fecha = fecha)
-            TareaRepository.agregarTarea(nuevaTarea)
-            _tasks.add(nuevaTarea)
+            viewModelScope.launch {
+                val nuevaTarea = Tarea(titulo.trim(), descripcion.trim(), fecha = fecha)
+                repository.agregarTarea(nuevaTarea)
+            }
         }
     }
 
     fun removeTask(tarea: Tarea) {
-        TareaRepository.eliminarTarea(tarea)
-        _tasks.remove(tarea)
+        viewModelScope.launch {
+            repository.eliminarTarea(tarea)
+        }
     }
 
     fun cambiarEstadoTarea(tarea: Tarea, completada: Boolean) {
-        val tareaActualizada = tarea.copy(completada = completada)
-        TareaRepository.actualizarTarea(tareaActualizada)
-        val index = _tasks.indexOf(tarea)
-        if (index != -1) {
-            _tasks[index] = tareaActualizada
+        viewModelScope.launch {
+            val tareaActualizada = tarea.copy(completada = completada)
+            repository.actualizarTarea(tareaActualizada)
         }
     }
 }
