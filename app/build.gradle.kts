@@ -64,6 +64,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    //OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
 
     testImplementation(libs.junit)

@@ -3,6 +3,9 @@ package com.example.todolist
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +41,21 @@ class MainActivity : ComponentActivity() {
 fun AppNavGraph(navController: NavHostController, factory: TareaViewModelFactory) {
     val viewModel: TareaViewModel = viewModel(factory = factory)
     val tasks by viewModel.tasks.collectAsState()
+    val phrase by viewModel.phrase.collectAsState()
+    val showDialog by viewModel.showPhraseDialog.collectAsState()
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDialogDismiss() },
+            title = { Text(text = "Frase del día") },
+            text = { Text(text = phrase) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.onDialogDismiss() }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
 
     NavHost(navController = navController, startDestination = "list") {
         composable("list") {
@@ -50,7 +68,10 @@ fun AppNavGraph(navController: NavHostController, factory: TareaViewModelFactory
         }
         composable("add") {
             AgregarTareaView(
-                onTaskAdded = { titulo, descripcion, fecha -> viewModel.addTask(titulo, descripcion, fecha) },
+                onTaskAdded = { titulo, descripcion, fecha ->
+                    viewModel.addTask(titulo, descripcion, fecha)
+                    navController.popBackStack()
+                },
                 onBack = { navController.popBackStack() }
             )
         }
