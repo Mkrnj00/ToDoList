@@ -35,7 +35,7 @@ fun ToDoListView(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(phrase) })
+            TopAppBar(title = { Text("Frase del dia: ''$phrase''") })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddClicked) {

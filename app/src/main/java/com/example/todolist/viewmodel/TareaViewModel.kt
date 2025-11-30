@@ -1,5 +1,8 @@
 package com.example.todolist.viewmodel
 
+import android.content.ContentValues
+import android.content.Context
+import android.provider.CalendarContract
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todolist.data.api.PhraseApiClient
@@ -15,12 +18,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
+import java.util.TimeZone
 
 class TareaViewModel(private val repository: TareaRepository) : ViewModel() {
 
     private val phraseApiClient = PhraseApiClient()
 
-    // Cambiado a Eagerly para mantener la conexión siempre activa
     val tasks: StateFlow<List<Tarea>> = repository.tareas
         .stateIn(
             scope = viewModelScope,
@@ -47,14 +50,37 @@ class TareaViewModel(private val repository: TareaRepository) : ViewModel() {
         }
     }
 
-    fun addTask(titulo: String, descripcion: String, fecha: Date, imageUri: String? = null) {
+    fun addTask(
+        context: Context,
+        titulo: String,
+        descripcion: String,
+        fecha: Date,
+        imageUri: String? = null
+    ) {
         viewModelScope.launch {
             if (titulo.isNotBlank()) {
-                val nuevaTarea = Tarea(titulo = titulo.trim(), descripcion = descripcion.trim(), fecha = fecha, imageUri = imageUri)
+                val nuevaTarea = Tarea(
+                    titulo = titulo.trim(),
+                    descripcion = descripcion.trim(),
+                    fecha = fecha,
+                    imageUri = imageUri
+                )
                 repository.agregarTarea(nuevaTarea)
-                _navigateBack.emit(Unit) // Emitir evento para navegar hacia atrás
+                agregarEventoCalendario(context, titulo.trim(), fecha)
+                _navigateBack.emit(Unit)
             }
         }
+    }
+
+    private fun agregarEventoCalendario(context: Context, titulo: String, fecha: Date) {
+        val values = ContentValues().apply {
+            put(CalendarContract.Events.DTSTART, fecha.time)
+            put(CalendarContract.Events.DTEND, fecha.time)
+            put(CalendarContract.Events.TITLE, titulo)
+            put(CalendarContract.Events.CALENDAR_ID, 1)
+            put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+        }
+        context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
     }
 
     fun removeTask(tarea: Tarea) {

@@ -1,6 +1,9 @@
 package com.example.todolist.view
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.example.todolist.data.core.saveImageToInternalStorage
 import java.text.SimpleDateFormat
@@ -37,12 +41,33 @@ fun AgregarTareaView(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
-            uri?.let { 
+            uri?.let {
                 imageUri = saveImageToInternalStorage(context, it)
             }
         }
     )
 
+    val imagePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted: Boolean ->
+            if (isGranted) {
+                galleryLauncher.launch("image/*")
+            } else {
+                // Handle permission denial if necessary
+            }
+        }
+    )
+
+    val calendarPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            if (permissions.all { it.value }) {
+                onTaskAdded(taskTitle.trim(), taskDescription.trim(), selectedDate.value, imageUri?.toString())
+            } else {
+                // Handle permission denial if necessary
+            }
+        }
+    )
 
     Scaffold(
         topBar = {
@@ -112,8 +137,25 @@ fun AgregarTareaView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = { galleryLauncher.launch("image/*") }) {
-                Text("Seleccionar imagen")
+            Button(onClick = {
+                val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Manifest.permission.READ_MEDIA_IMAGES
+                } else {
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                }
+                when (ContextCompat.checkSelfPermission(
+                    context,
+                    permission
+                )) {
+                    PackageManager.PERMISSION_GRANTED -> {
+                        galleryLauncher.launch("image/*")
+                    }
+                    else -> {
+                        imagePermissionLauncher.launch(permission)
+                    }
+                }
+            }) {
+                Text("Seleccionar imagen (opcional)")
             }
 
             imageUri?.let {
@@ -137,7 +179,15 @@ fun AgregarTareaView(
                 if (taskTitle.isBlank()) {
                     errorText = "El campo de título no puede estar vacío"
                 } else {
-                    onTaskAdded(taskTitle.trim(), taskDescription.trim(), selectedDate.value, imageUri?.toString())
+                     val calendarPermissions = arrayOf(
+                        Manifest.permission.READ_CALENDAR,
+                        Manifest.permission.WRITE_CALENDAR
+                    )
+                    if (calendarPermissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }) {
+                        onTaskAdded(taskTitle.trim(), taskDescription.trim(), selectedDate.value, imageUri?.toString())
+                    } else {
+                        calendarPermissionLauncher.launch(calendarPermissions)
+                    }
                 }
             }) {
                 Text("Guardar tarea")
