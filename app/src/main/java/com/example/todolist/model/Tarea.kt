@@ -8,5 +8,6 @@ data class Tarea(
     val titulo: String,
     val descripcion: String,
     val estado: EstadoTarea = EstadoTarea.POR_HACER,
-    val fecha: Date = Date()
+    val fecha: Date = Date(),
+    val imageUri: String? = null
 )

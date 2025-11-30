@@ -15,13 +15,13 @@ class TareaRepository(private val tareasDataStore: TareasDataStore) {
 
     suspend fun eliminarTarea(tarea: Tarea) {
         val currentTasks = tareas.first().toMutableList()
-        currentTasks.remove(tarea)
+        currentTasks.removeAll { it.id == tarea.id } // Usar ID para más seguridad
         tareasDataStore.guardarTareas(currentTasks)
     }
 
     suspend fun actualizarTarea(tareaActualizada: Tarea) {
         val currentTasks = tareas.first().toMutableList()
-        val index = currentTasks.indexOfFirst { it.titulo == tareaActualizada.titulo }
+        val index = currentTasks.indexOfFirst { it.id == tareaActualizada.id } // Corregido: Usar ID en lugar de título
         if (index != -1) {
             currentTasks[index] = tareaActualizada
             tareasDataStore.guardarTareas(currentTasks)

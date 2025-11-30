@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +19,7 @@ import com.example.todolist.view.AgregarTareaView
 import com.example.todolist.view.ToDoListView
 import com.example.todolist.viewmodel.TareaViewModel
 import com.example.todolist.viewmodel.TareaViewModelFactory
+import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,15 +48,28 @@ fun AppNavGraph(navController: NavHostController, factory: TareaViewModelFactory
                 tasks = tasks,
                 phrase = phrase,
                 onAddClicked = { navController.navigate("add") },
-                onDelete = { task -> viewModel.removeTask(task) },
-                onTaskStateChange = { task, estado -> viewModel.cambiarEstadoTarea(task, estado) }
+                onDelete = { task ->
+                    viewModel.removeTask(task)
+                },
+                onTaskStateChange = { task, estado ->
+                    viewModel.cambiarEstadoTarea(task, estado)
+                }
             )
         }
         composable("add") {
-            AgregarTareaView(
-                onTaskAdded = { titulo, descripcion, fecha ->
-                    viewModel.addTask(titulo, descripcion, fecha)
+            // 1. Con este LaunchedEffect, "escuchamos" la señal del ViewModel.
+            LaunchedEffect(Unit) {
+                viewModel.navigateBack.collectLatest { 
+                    // 3. Solo cuando la señal llega, navegamos hacia atrás.
                     navController.popBackStack()
+                }
+            }
+
+            AgregarTareaView(
+                // 2. Ahora, onTaskAdded SOLO le pide al ViewModel que guarde la tarea.
+                // Ya no se encarga de la navegación.
+                onTaskAdded = { titulo, descripcion, fecha, imageUri ->
+                    viewModel.addTask(titulo, descripcion, fecha, imageUri)
                 },
                 onBack = { navController.popBackStack() }
             )

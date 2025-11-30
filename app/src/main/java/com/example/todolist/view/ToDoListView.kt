@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.todolist.model.EstadoTarea
 import com.example.todolist.model.Tarea
 import java.text.SimpleDateFormat
@@ -92,6 +93,16 @@ fun ToDoListView(
                                 Text(text = task.descripcion)
                                 val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                                 Text(text = sdf.format(task.fecha))
+                                task.imageUri?.let { uri ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    AsyncImage(
+                                        model = uri,
+                                        contentDescription = "Imagen de la tarea",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                    )
+                                }
                             }
                             IconButton(onClick = {
                                 showDialog = task
@@ -114,7 +125,7 @@ fun ToDoListView(
         AlertDialog(
             onDismissRequest = { showDialog = null },
             title = { Text("Eliminar Tarea") },
-            text = { Text("¿Estas seguro que quieres eliminar la tarea \"${task.titulo}\"?") },
+            text = { Text("¿Estas seguro que quieres eliminar la tarea \"${'$'}{task.titulo}\"?") },
             confirmButton = {
                 TextButton(onClick = {
                     onDelete(task)
