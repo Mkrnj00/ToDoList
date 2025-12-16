@@ -37,6 +37,9 @@ class TareaViewModel(private val repository: TareaRepository) : ViewModel() {
     private val _navigateBack = MutableSharedFlow<Unit>()
     val navigateBack = _navigateBack.asSharedFlow()
 
+    private val _taskSavedEvent = MutableSharedFlow<Unit>()
+    val taskSavedEvent = _taskSavedEvent.asSharedFlow()
+
     init {
         fetchPhrase()
     }
@@ -67,6 +70,7 @@ class TareaViewModel(private val repository: TareaRepository) : ViewModel() {
                 )
                 repository.agregarTarea(nuevaTarea)
                 agregarEventoCalendario(context, titulo.trim(), fecha)
+                _taskSavedEvent.emit(Unit)
                 _navigateBack.emit(Unit)
             }
         }

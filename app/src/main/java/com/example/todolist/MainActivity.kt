@@ -1,6 +1,7 @@
 package com.example.todolist
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import com.example.todolist.view.ToDoListView
 import com.example.todolist.viewmodel.TareaViewModel
 import com.example.todolist.viewmodel.TareaViewModelFactory
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,8 +62,15 @@ fun AppNavGraph(navController: NavHostController, factory: TareaViewModelFactory
         composable("add") {
             val context = LocalContext.current
             LaunchedEffect(Unit) {
-                viewModel.navigateBack.collectLatest { 
-                    navController.popBackStack()
+                launch {
+                    viewModel.navigateBack.collectLatest { 
+                        navController.popBackStack()
+                    }
+                }
+                launch {
+                    viewModel.taskSavedEvent.collectLatest {
+                        Toast.makeText(context, "Guardado exitosamente en app y calendario", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 
